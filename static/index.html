@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AI Interview Platform &#8212; Practice real interviews with an AI coach powered by Google Gemini." />
+  <title>AI Interview Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!--
+  =============================================================
+   VOICE UI v2 (FULL-DUPLEX) -- DOM ID REFERENCE
+  -------------------------------------------------------------
+   SETUP SCREEN
+     #interview-mode          radiogroup; data-mode="text"|"voice"
+     .mode-btn[data-mode]     individual mode buttons
+
+   CHAT HEADER
+     #voice-mode-toggle       mode badge pill
+
+   VOICE CALL BAR  (shown in voice mode; hidden in text mode)
+     #voice-call-status       top row: live-dot, timer, End Call btn
+     #call-timer              elapsed seconds span
+     #recording-indicator     mic-live / muted status (repurposed v2)
+     #voice-controls          inner container; JS sets display:flex on session_ready
+     #user-speaking-indicator wrapper div around user mic canvas panel
+     #audio-visualizer        CANVAS -- user mic waveform (JS canvas 2d)
+     #ai-speaking-indicator   AI voice bars (CSS-only, .speaking / .speaking-active toggle)
+     #mic-btn                 mic MUTE toggle (not start/stop record)
+     #speaker-btn             AI audio mute toggle
+     #voice-error-banner      mic-denied / stream-error message
+     #end-btn-voice           End Call button
+
+   EXISTING IDs (unchanged -- do not rename)
+     #setup-screen  #chat-screen  #setup-form  #start-btn
+     #user-name     #role-select
+     #chat-messages #message-input #send-btn   #end-btn
+     #typing-indicator  #connection-status
+     #current-role  #char-count
+  =============================================================
+  -->
+
+
+  <!-- ============================================================
+       SCREEN 1: SETUP / LANDING
+       Hidden after user clicks "Start Interview"
+  ============================================================ -->
+  <div id="setup-screen" class="screen">
+
+    <header class="setup-header">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#129302;</span>
+        <span class="logo-text">AI Interview Platform</span>
+      </div>
+    </header>
+
+    <main class="setup-main">
+      <div class="setup-card">
+
+        <div class="setup-hero">
+          <h1 class="setup-title">Ace Your Next Interview</h1>
+          <p class="setup-tagline">
+            Practice with an AI interviewer powered by Google Gemini. Get
+            role-specific questions, instant feedback, and build real
+            confidence &#8212; all before the big day.
+          </p>
+        </div>
+
+        <form class="setup-form" id="setup-form" novalidate>
+
+          <!-- Name input (optional) -->
+          <div class="form-group">
+            <label class="form-label" for="user-name">
+              Your Name
+              <span class="form-hint">(optional)</span>
+            </label>
+            <input
+              type="text"
+              id="user-name"
+              class="form-input"
+              placeholder="Enter your name"
+              autocomplete="given-name"
+              maxlength="60"
+            />
+          </div>
+
+          <!-- Role select (required) -->
+          <div class="form-group">
+            <label class="form-label" for="role-select">
+              Interview Role
+              <span class="form-required" aria-label="required">*</span>
+            </label>
+            <div class="select-wrapper">
+              <!-- Role options populated dynamically by app.js via /api/config/roles -->
+              <select id="role-select" class="form-select" required>
+                <option value="" disabled selected>Select a role&#8230;</option>
+              </select>
+              <span class="select-arrow" aria-hidden="true">&#8964;</span>
+            </div>
+          </div>
+
+          <!-- Interview Mode Selector
+               JS reads: document.getElementById('interview-mode').dataset.mode
+               Values:   "text" (default) | "voice"
+               The two .mode-btn buttons carry role="radio" + aria-checked     -->
+          <div class="form-group">
+            <span class="form-label" id="interview-mode-label">Interview Mode</span>
+            <div
+              id="interview-mode"
+              class="mode-selector"
+              role="radiogroup"
+              aria-labelledby="interview-mode-label"
+              data-mode="text"
+            >
+              <button
+                type="button"
+                class="mode-btn mode-btn--active"
+                data-mode="text"
+                role="radio"
+                aria-checked="true"
+                aria-label="Text interview &#8212; type your answers"
+              >
+                <span class="mode-btn-icon" aria-hidden="true">&#128172;</span>
+                <span class="mode-btn-label">Text Interview</span>
+              </button>
+              <button
+                type="button"
+                class="mode-btn"
+                data-mode="voice"
+                role="radio"
+                aria-checked="false"
+                aria-label="Voice interview &#8212; speak your answers (full duplex)"
+              >
+                <span class="mode-btn-icon" aria-hidden="true">&#127902;</span>
+                <span class="mode-btn-label">Voice Interview</span>
+              </button>
+            </div>
+            <!-- Shown only when voice mode is selected -->
+            <p class="voice-mode-tip" id="voice-mode-tip" aria-live="polite" hidden>
+              <span aria-hidden="true">&#127902;</span>
+              Your microphone will be activated when the interview starts.
+              Speak freely &#8212; it&#8217;s a live two-way call.
+            </p>
+          </div>
+
+          <!-- Start button -- icon updated by JS based on selected mode -->
+          <button
+            type="button"
+            id="start-btn"
+            class="btn btn-primary btn-large"
+            disabled
+          >
+            <span class="btn-icon" id="start-btn-icon" aria-hidden="true">&#128172;</span>
+            <span id="start-btn-label">Start Interview</span>
+          </button>
+
+        </form>
+
+        <!-- Tips strip -->
+        <div class="setup-tips">
+          <p class="tip-item">
+            <span class="tip-icon" aria-hidden="true">&#128161;</span>
+            Pick a role to receive targeted, role-specific questions
+          </p>
+          <p class="tip-item">
+            <span class="tip-icon" aria-hidden="true">&#127919;</span>
+            Answer naturally &#8212; the AI adapts to your responses
+          </p>
+          <p class="tip-item">
+            <span class="tip-icon" aria-hidden="true">&#128260;</span>
+            Practice as many times as you like
+          </p>
+        </div>
+
+      </div><!-- /.setup-card -->
+    </main>
+
+  </div><!-- /#setup-screen -->
+
+
+  <!-- ============================================================
+       SCREEN 2: INTERVIEW / CHAT
+       Shown after "Start Interview" is clicked
+  ============================================================ -->
+  <div id="chat-screen" class="screen" style="display:none">
+
+    <!-- Chat header -->
+    <header class="chat-header">
+      <div class="chat-header-left">
+        <span class="logo-icon" aria-hidden="true">&#129302;</span>
+        <span class="chat-brand">AI Interview Platform</span>
+        <span class="role-badge">
+          Role: <strong id="current-role">Software Engineer</strong>
+        </span>
+      </div>
+      <div class="chat-header-right">
+        <!-- Connection status (unchanged) -->
+        <span id="connection-status" class="connection-status disconnected" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-label">Disconnected</span>
+        </span>
+
+        <!-- Voice mode indicator badge
+             JS sets data-mode="text"|"voice" and updates aria-label.
+             In full-duplex, this badge is informational only during a call --
+             switching modes mid-call is not recommended UX.               -->
+        <button
+          type="button"
+          id="voice-mode-toggle"
+          class="voice-mode-badge"
+          data-mode="text"
+          aria-label="Currently in text mode"
+          title="Interview mode indicator"
+        >
+          <span class="voice-mode-badge-icon" aria-hidden="true">&#128172;</span>
+          <span class="voice-mode-badge-label">Text</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Chat body -->
+    <div class="chat-body">
+
+      <!-- Scrollable message list -->
+      <div id="chat-messages" class="chat-messages" role="log" aria-label="Interview conversation" aria-live="polite">
+
+        <!-- Messages are injected here by app.js -->
+        <!-- Static preview message (JS will clear and re-render) -->
+        <div class="message message-ai">
+          <span class="message-avatar" aria-hidden="true">&#129302;</span>
+          <div class="message-bubble">
+            <p class="message-text">
+              Welcome! I&#8217;m your AI interviewer. Once connected, I&#8217;ll begin with
+              a few warm-up questions tailored to your selected role. Take your
+              time and answer as you would in a real interview. Good luck!
+            </p>
+            <span class="message-time">--:--</span>
+          </div>
+        </div>
+
+        <!-- Typing indicator (hidden by default; shown by JS while AI is thinking) -->
+        <div id="typing-indicator" class="message message-ai typing-indicator" style="display:none" aria-label="AI is typing">
+          <span class="message-avatar" aria-hidden="true">&#129302;</span>
+          <div class="message-bubble">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+
+      </div><!-- /#chat-messages -->
+
+    </div><!-- /.chat-body -->
+
+
+    <!-- ============================================================
+         TEXT INPUT BAR (existing -- shown in text mode)
+         JS hides this and shows voice-input-bar in voice mode.
+    ============================================================ -->
+    <div class="chat-input-bar" id="text-input-bar">
+      <div class="input-row">
+        <label for="message-input" class="sr-only">Type your answer</label>
+        <textarea
+          id="message-input"
+          class="message-input"
+          placeholder="Type your answer&#8230;"
+          rows="1"
+          maxlength="2000"
+          autocomplete="off"
+          aria-label="Message input"
+        ></textarea>
+        <button
+          type="button"
+          id="send-btn"
+          class="btn btn-primary btn-send"
+          disabled
+          aria-label="Send message"
+        >
+          <span class="btn-send-icon" aria-hidden="true">&#9658;</span>
+          <span class="btn-send-label">Send</span>
+        </button>
+      </div>
+      <div class="input-actions">
+        <button
+          type="button"
+          id="end-btn"
+          class="btn btn-danger-outline"
+          aria-label="End the interview session"
+        >
+          &#x2715; End Interview
+        </button>
+        <span class="char-count" id="char-count" aria-live="polite"></span>
+      </div>
+    </div><!-- /#text-input-bar -->
+
+    <!-- ============================================================
+         VOICE CALL BAR  (full-duplex -- shown in voice mode)
+         ============================================================
+         FULL-DUPLEX SEMANTICS (v2):
+           - Mic pipeline is always active during the call.
+           - #mic-btn is a MUTE toggle, not a record-start button.
+             Default: mic LIVE (isRecording = true).
+           - Both user-mic and AI visualizers shown simultaneously.
+           - No "waiting" / "now speak" states -- it is a phone call.
+           - #audio-visualizer MUST be a <canvas> -- app.js calls
+             audioVisualizer.getContext('2d') to draw a waveform.
+           - #voice-controls: inner container shown by JS on session_ready.
+             Starts display:none; JS sets style.display = 'flex'.
+           - #user-speaking-indicator: wrapper around user mic canvas panel.
+             JS adds .speaking-active to show mic-detecting-audio state.
+           - #ai-speaking-indicator: AI CSS-bar visualizer (CSS-only).
+             JS adds .speaking and/or .speaking-active to animate.
+         ============================================================ -->
+    <div class="voice-input-bar" id="voice-input-bar" hidden aria-label="Voice call controls">
+
+      <!-- --- Call Status Row -------------------------------------------
+           Always visible once voice-input-bar is revealed.
+           Left side: live-dot | "In Call" | bullet | elapsed timer | mic status
+           Right side: End Call button
+
+           #recording-indicator is kept for JS compat (setRecordingIndicator).
+           In v2 it stays visible; JS updates .rec-label text:
+             setRecordingIndicator(true)  --> "Mic Live"  (green dot)
+             setRecordingIndicator(false) --> "Muted"     (grey, .muted class)
+      ----------------------------------------------------------------- -->
+      <div
+        id="voice-call-status"
+        class="voice-call-status"
+        aria-label="Voice call in progress"
+      >
+        <div class="call-status-left">
+          <span class="call-live-dot" aria-hidden="true"></span>
+          <span class="call-live-label">In Call</span>
+          <span class="call-divider" aria-hidden="true">&bull;</span>
+          <span
+            id="call-timer"
+            class="call-timer"
+            role="timer"
+            aria-live="off"
+            aria-label="Call duration"
+          >0:00</span>
+
+          <!-- Recording indicator (compat + mic status in v2) -->
+          <div
+            id="recording-indicator"
+            class="recording-indicator recording-indicator--inline"
+            role="status"
+            aria-live="polite"
+            aria-label="Microphone status"
+          >
+            <span class="rec-dot" aria-hidden="true"></span>
+            <span class="rec-label">Mic Live</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          id="end-btn-voice"
+          class="btn btn-danger-outline btn-end-call"
+          aria-label="End the interview session"
+        >
+          &#x2715; End Call
+        </button>
+      </div><!-- /#voice-call-status -->
+
+      <!-- --- Voice Controls Container (#voice-controls) ----------------
+           JS reveals this container when session_ready is received:
+             document.getElementById('voice-controls').style.display = 'flex'
+           Starts hidden via inline style="display:none".
+           Contains: dual visualizer row + mic/speaker control buttons.
+           Kept separate from #voice-call-status so the call header row
+           (timer + End Call) remains visible even while waiting for the
+           WS session_ready handshake to complete.
+      ----------------------------------------------------------------- -->
+      <div id="voice-controls" class="voice-controls" style="display:none">
+
+        <!-- --- Dual Visualizer Row ----------------------------------------
+             USER MIC (left) and AI VOICE (right) always shown side-by-side.
+             Both panels can animate simultaneously -- full-duplex.
+             The entire row is aria-hidden (decorative).
+
+             #user-speaking-indicator: wrapper div for the user mic panel.
+               - Always present during voice session.
+               - JS adds .speaking-active class when mic detects audio.
+               - Contains <canvas id="audio-visualizer"> for JS waveform.
+
+             IMPORTANT: #audio-visualizer MUST be a <canvas>.
+               app.js _startVisualizer() calls canvas.getContext('2d').
+               A <div> returns null from getContext() and fails silently.
+
+             #ai-speaking-indicator: CSS-only bar visualizer.
+               - JS adds .speaking for active animation, .speaking-active
+                 for the generic active-indicator state.
+               - No hidden attribute toggle -- always visible in voice mode.
+        ---------------------------------------------------------------- -->
+        <div class="voice-visualizer-row" aria-hidden="true">
+
+          <!-- User mic panel -->
+          <div
+            id="user-speaking-indicator"
+            class="viz-panel viz-panel--user"
+            aria-label="Your mic is active"
+          >
+            <span class="viz-panel-label">Your Mic</span>
+            <canvas
+              id="audio-visualizer"
+              class="audio-visualizer-canvas"
+              width="120"
+              height="40"
+              aria-hidden="true"
+            ></canvas>
+          </div>
+
+          <!-- AI voice panel -->
+          <div class="viz-panel viz-panel--ai">
+            <span class="viz-panel-label">AI Voice</span>
+            <div
+              id="ai-speaking-indicator"
+              class="ai-speaking-indicator"
+              role="status"
+              aria-live="polite"
+              aria-label="AI is speaking"
+            >
+              <span class="ai-bar"></span>
+              <span class="ai-bar"></span>
+              <span class="ai-bar"></span>
+              <span class="ai-bar"></span>
+              <span class="ai-bar"></span>
+            </div>
+          </div>
+
+        </div><!-- /.voice-visualizer-row -->
+
+        <!-- --- Control Row ------------------------------------------------
+             Two equal-width groups: mic mute | AI audio mute.
+             Mic default = Live (aria-pressed="false" = not muted).
+             JS toggles: .muted class, aria-pressed, aria-label.
+        ---------------------------------------------------------------- -->
+        <div class="voice-control-row">
+
+          <!-- Mic mute/unmute
+               live  : aria-pressed="false", no .muted class, label="Mute microphone"
+               muted : aria-pressed="true",  .muted class,    label="Unmute microphone"
+               denied: .denied + aria-disabled="true"                              -->
+          <div class="voice-control-group">
+            <button
+              type="button"
+              id="mic-btn"
+              class="mic-btn"
+              aria-label="Mute microphone"
+              aria-pressed="false"
+              title="Mute / unmute your microphone"
+            >
+              <span class="mic-btn-icon" aria-hidden="true">&#127908;</span>
+            </button>
+            <span class="voice-control-label" aria-hidden="true">Mic</span>
+          </div>
+
+          <!-- AI audio mute (same logic as v1 speaker-btn) -->
+          <div class="voice-control-group">
+            <button
+              type="button"
+              id="speaker-btn"
+              class="speaker-btn"
+              aria-label="Mute AI audio"
+              aria-pressed="false"
+              title="Mute / unmute AI audio"
+            >
+              <span class="speaker-btn-icon" aria-hidden="true">&#128266;</span>
+            </button>
+            <span class="voice-control-label" aria-hidden="true">AI Audio</span>
+          </div>
+
+        </div><!-- /.voice-control-row -->
+
+      </div><!-- /#voice-controls -->
+
+      <!-- --- Voice error banner -----------------------------------------
+           Shown by JS when mic denied or stream lost.
+           aria-live="assertive" for immediate screen-reader announcement.
+      ----------------------------------------------------------------- -->
+      <div
+        id="voice-error-banner"
+        class="voice-error-banner"
+        role="alert"
+        aria-live="assertive"
+        hidden
+      >
+        <span class="voice-error-icon" aria-hidden="true">&#128683;</span>
+        <span class="voice-error-text" id="voice-error-text">Microphone access denied.</span>
+      </div>
+
+    </div><!-- /#voice-input-bar -->
+
+  </div><!-- /#chat-screen -->
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

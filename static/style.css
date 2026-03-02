@@ -1,0 +1,1573 @@
+/* ===============================================================
+   AI INTERVIEW PLATFORM — style.css
+   Design tokens → Reset → Layout → Setup Screen → Chat Screen
+   → Messages → Typing indicator → Input bar → Connection status
+   → Utilities → Animations → Media queries → Voice UI (v2)
+=============================================================== */
+
+/* --- 1. DESIGN TOKENS ---------------------------------------- */
+:root {
+  /* Brand palette */
+  --color-primary:        #2563EB;
+  --color-primary-hover:  #1D4ED8;
+  --color-primary-active: #1E40AF;
+
+  --color-danger:         #DC2626;
+  --color-danger-hover:   #B91C1C;
+
+  --color-header-bg:      #0F172A;
+  --color-header-text:    #F8FAFC;
+
+  /* Surfaces */
+  --color-bg:             #F1F5F9;
+  --color-surface:        #FFFFFF;
+  --color-border:         #E2E8F0;
+  --color-border-focus:   #2563EB;
+
+  /* Text */
+  --color-text:           #1E293B;
+  --color-text-muted:     #64748B;
+  --color-text-light:     #94A3B8;
+
+  /* Message bubbles */
+  --color-ai-bubble-bg:     #FFFFFF;
+  --color-ai-bubble-border: #E2E8F0;
+  --color-user-bubble-bg:   #2563EB;
+  --color-user-bubble-text: #FFFFFF;
+
+  /* Connection status */
+  --color-connected:    #22C55E;
+  --color-disconnected: #EF4444;
+  --color-reconnecting: #F59E0B;
+
+  /* Spacing */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Typography */
+  --font-family:    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-xs:   11px;
+  --font-size-sm:   13px;
+  --font-size-base: 14px;
+  --font-size-md:   16px;
+  --font-size-lg:   18px;
+  --font-size-xl:   24px;
+  --font-size-2xl:  32px;
+  --line-height:    1.6;
+
+  /* Radii */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
+
+  /* Transitions */
+  --transition-fast:   150ms ease;
+  --transition-normal: 250ms ease;
+
+  /* Layout */
+  --header-height:    60px;
+  --input-bar-height: 110px;
+  --chat-max-width:   800px;
+  --setup-max-width:  480px;
+}
+
+/* --- 2. RESET ------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+  font-size: var(--font-size-base);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  height: 100%;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { display: block; max-width: 100%; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* --- 3. ACCESSIBILITY UTILITY -------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- 4. SCREEN WRAPPER --------------------------------------- */
+.screen {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+}
+
+.screen.fade-in {
+  animation: screenFadeIn var(--transition-normal) forwards;
+}
+
+/* --- 5. SHARED BUTTON STYLES --------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Primary */
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border: 2px solid transparent;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-primary-active);
+  transform: translateY(0);
+  box-shadow: none;
+}
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Danger outline */
+.btn-danger-outline {
+  background: transparent;
+  color: var(--color-danger);
+  border: 1.5px solid var(--color-danger);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+}
+.btn-danger-outline:hover {
+  background: #FEF2F2;
+  border-color: var(--color-danger-hover);
+  color: var(--color-danger-hover);
+  transform: translateY(-1px);
+}
+.btn-danger-outline:active {
+  background: #FEE2E2;
+  transform: translateY(0);
+}
+
+/* Large variant */
+.btn-large {
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--font-size-md);
+  border-radius: var(--radius-lg);
+  width: 100%;
+}
+
+/* --- 6. SETUP SCREEN ----------------------------------------- */
+#setup-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%);
+  min-height: 100vh;
+}
+
+.setup-header {
+  width: 100%;
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.logo-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.logo-text {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-header-text);
+  letter-spacing: -0.02em;
+}
+
+.setup-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--setup-max-width);
+  padding: var(--space-10) var(--space-6) var(--space-8);
+  margin: 0 auto;
+}
+
+.setup-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-8);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.setup-hero {
+  text-align: center;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.setup-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-3);
+}
+
+.setup-tagline {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.form-hint {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.form-required {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-surface);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.form-input::placeholder { color: var(--color-text-light); }
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select-wrapper .form-select { padding-right: var(--space-8); }
+
+.select-arrow {
+  position: absolute;
+  right: var(--space-4);
+  font-size: 18px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.setup-tips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.tip-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+/* --- 7. CHAT SCREEN ------------------------------------------ */
+#chat-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.chat-header {
+  flex-shrink: 0;
+  height: var(--header-height);
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06), var(--shadow-sm);
+  z-index: 10;
+}
+
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.chat-brand {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.role-badge {
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: rgba(248,250,252,0.65);
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.role-badge strong {
+  color: var(--color-header-text);
+  font-weight: 600;
+}
+
+.chat-header-right {
+  flex-shrink: 0;
+  margin-left: var(--space-4);
+  display: flex;
+  align-items: center;
+}
+
+/* --- 8. CONNECTION STATUS ------------------------------------ */
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: 4px var(--space-3);
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  white-space: nowrap;
+  transition: all var(--transition-normal);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color var(--transition-normal);
+}
+
+.connection-status.connected    .status-dot   { background: var(--color-connected); }
+.connection-status.connected    .status-label { color: var(--color-connected); }
+.connection-status.disconnected .status-dot   { background: var(--color-disconnected); }
+.connection-status.disconnected .status-label { color: var(--color-disconnected); }
+.connection-status.reconnecting .status-dot   {
+  background: var(--color-reconnecting);
+  animation: statusPulse 1s ease-in-out infinite;
+}
+.connection-status.reconnecting .status-label { color: var(--color-reconnecting); }
+
+/* --- 9. CHAT BODY -------------------------------------------- */
+.chat-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  scroll-behavior: smooth;
+}
+
+#chat-messages::-webkit-scrollbar       { width: 6px; }
+#chat-messages::-webkit-scrollbar-track { background: transparent; }
+#chat-messages::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+#chat-messages::-webkit-scrollbar-thumb:hover { background: var(--color-text-light); }
+
+/* --- 10. MESSAGE BUBBLES ------------------------------------- */
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  max-width: 78%;
+  animation: messageSlideIn 200ms ease forwards;
+}
+
+.message-ai   { align-self: flex-start; flex-direction: row; }
+.message-user { align-self: flex-end;   flex-direction: row-reverse; }
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-header-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+}
+
+.message-bubble {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  line-height: var(--line-height);
+  word-break: break-word;
+}
+
+.message-ai   .message-bubble {
+  background: var(--color-ai-bubble-bg);
+  border: 1px solid var(--color-ai-bubble-border);
+  border-bottom-left-radius: var(--radius-sm);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.message-user .message-bubble {
+  background: var(--color-user-bubble-bg);
+  border: 1px solid transparent;
+  border-bottom-right-radius: var(--radius-sm);
+  color: var(--color-user-bubble-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.message-text {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-1);
+}
+
+.message-time {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  text-align: right;
+  margin-top: 2px;
+}
+
+.message-user .message-time { color: rgba(255,255,255,0.55); text-align: left; }
+
+/* --- 11. TYPING INDICATOR ------------------------------------ */
+.typing-indicator .message-bubble {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 56px;
+}
+
+.typing-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-light);
+  animation: typingBounce 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0ms;   }
+.typing-dot:nth-child(2) { animation-delay: 150ms;  }
+.typing-dot:nth-child(3) { animation-delay: 300ms;  }
+
+/* --- 12. CHAT INPUT BAR -------------------------------------- */
+.chat-input-bar {
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-6) var(--space-4);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  z-index: 10;
+}
+
+.input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.message-input {
+  flex: 1;
+  min-height: 44px;
+  max-height: 120px;
+  padding: var(--space-3) var(--space-4);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  resize: none;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  color: var(--color-text);
+  background: var(--color-bg);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
+  overflow-y: auto;
+}
+
+.message-input::placeholder { color: var(--color-text-light); }
+
+.message-input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  background: var(--color-surface);
+}
+
+.message-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-bg);
+  border-color: var(--color-border);
+}
+
+.btn-send {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.btn-send-icon  { font-size: 16px; line-height: 1; }
+.btn-send-label { display: none; }
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-2);
+}
+
+.char-count      { font-size: var(--font-size-xs); color: var(--color-text-light); }
+.char-count.warn { color: var(--color-reconnecting); }
+
+/* --- 13. EMPTY STATE ----------------------------------------- */
+.chat-messages:empty::before,
+.chat-messages--empty::before {
+  content: 'Your conversation will appear here.';
+  display: block;
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: var(--font-size-sm);
+  margin: auto;
+  padding: var(--space-10) 0;
+}
+
+/* --- 14. ANIMATIONS ------------------------------------------ */
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes messageSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0);    opacity: 0.4; }
+  30%            { transform: translateY(-6px); opacity: 1;   }
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* --- 15. RESPONSIVE — TABLET (<=768px) ---------------------- */
+@media (max-width: 768px) {
+  .setup-card {
+    padding: var(--space-6) var(--space-5);
+    border-radius: var(--radius-lg);
+    margin: 0 var(--space-2);
+  }
+
+  .setup-main {
+    padding: var(--space-6) var(--space-4) var(--space-6);
+    max-width: 100%;
+  }
+
+  .setup-title { font-size: var(--font-size-lg); }
+
+  .chat-header {
+    padding: 0 var(--space-4);
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--header-height);
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .chat-brand  { font-size: var(--font-size-base); }
+  .role-badge  { max-width: 140px; }
+
+  #chat-messages {
+    padding: var(--space-4) var(--space-4) var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .message { max-width: 92%; }
+
+  .chat-input-bar { padding: var(--space-2) var(--space-4) var(--space-3); }
+
+  .btn-send {
+    width: auto;
+    padding: 0 var(--space-4);
+    gap: var(--space-1);
+  }
+
+  .btn-send-label {
+    display: inline;
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* --- 16. RESPONSIVE — MOBILE (<=480px) ---------------------- */
+@media (max-width: 480px) {
+  .chat-header-left { flex-wrap: wrap; row-gap: 2px; }
+  .role-badge        { font-size: 11px; padding: 1px var(--space-2); }
+
+  .message-avatar { width: 26px; height: 26px; font-size: 13px; }
+  .message        { max-width: 96%; }
+  .message-bubble { padding: var(--space-2) var(--space-3); }
+}
+
+/* --- 17. DESKTOP — WIDER CHAT (>=1024px) -------------------- */
+@media (min-width: 1024px) {
+  .chat-body,
+  .chat-input-bar {
+    max-width: var(--chat-max-width);
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  .chat-input-bar {
+    max-width: 100%;
+    padding-left:  calc(50% - var(--chat-max-width) / 2 + var(--space-6));
+    padding-right: calc(50% - var(--chat-max-width) / 2 + var(--space-6));
+  }
+
+  .btn-send {
+    width: auto;
+    padding: 0 var(--space-5);
+    gap: var(--space-2);
+  }
+
+  .btn-send-label { display: inline; }
+}
+
+/* --- 18. JS-INJECTED BUBBLE CLASSES ------------------------- */
+/*
+  app.js creates:
+    div.message.message-ai  or  div.message.message-user
+      div.bubble          <- inner text content
+      div.message-meta    <- timestamp
+  Plus: div.message.message-ai.streaming during live chunks.
+  Plus: div.special-message.special-message-feedback / .special-message-error
+*/
+
+.message .bubble {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  line-height: var(--line-height);
+  font-size: var(--font-size-base);
+  word-break: break-word;
+  max-width: 100%;
+  position: relative;
+}
+
+.message-ai   .bubble {
+  background: var(--color-ai-bubble-bg);
+  border: 1px solid var(--color-ai-bubble-border);
+  border-bottom-left-radius: var(--radius-sm);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.message-user .bubble {
+  background: var(--color-user-bubble-bg);
+  border: 1px solid transparent;
+  border-bottom-right-radius: var(--radius-sm);
+  color: var(--color-user-bubble-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.message-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  margin-top: 3px;
+  padding: 0 var(--space-1);
+}
+
+.message-ai   .message-meta { text-align: left; }
+.message-user .message-meta { text-align: right; color: var(--color-text-muted); }
+
+.message.streaming .bubble {
+  border-color: rgba(37, 99, 235, 0.30);
+  animation: streamingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes streamingPulse {
+  0%, 100% { border-color: rgba(37, 99, 235, 0.30); }
+  50%       { border-color: rgba(37, 99, 235, 0.60); }
+}
+
+.special-message {
+  align-self: center;
+  max-width: 90%;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  line-height: 1.5;
+  animation: messageSlideIn 200ms ease forwards;
+}
+
+.special-message-feedback {
+  background: #F0FDF4;
+  border: 1px solid #86EFAC;
+  color: #166534;
+}
+
+.special-message-error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+}
+
+.reconnect-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  margin-left: var(--space-1);
+  font-family: inherit;
+}
+
+.reconnect-btn:hover { color: var(--color-primary-hover); }
+
+/* --- 19. CONNECTION STATUS — textContent mode ---------------- */
+/* app.js may set connectionStatus.textContent directly, which
+   overwrites child spans. Root-level colour rules ensure the text
+   is still coloured correctly in that mode.                      */
+.connection-status.connected    { color: var(--color-connected);    }
+.connection-status.disconnected { color: var(--color-disconnected); }
+.connection-status.reconnecting { color: var(--color-reconnecting); }
+.connection-status.connecting   { color: var(--color-reconnecting); }
+.connection-status.error        { color: var(--color-disconnected); }
+
+/* --- 20. AVATAR (static preview fallback) ------------------- */
+.message:not(:has(.message-avatar)) { gap: 0; }
+
+.message > .bubble:first-child { margin-left: var(--space-1); }
+
+
+/* ==============================================================
+   VOICE UI v2 — FULL DUPLEX
+   Sections 21–34 below.
+   Key changes from v1:
+     - #mic-btn is now a MUTE toggle (mic always open during call)
+     - Phone-call metaphor: call-status row with live dot + timer
+     - Dual visualizer: user canvas (left) + AI CSS bars (right)
+     - No turn-taking states ("SPEAK" / "RECORDING" removed)
+     - .recording class on mic-btn = MUTED (was: recording in v1)
+   JS contract:
+     - setRecordingIndicator(true)  -> mic live state
+     - setRecordingIndicator(false) -> mic muted state
+     - setAISpeakingIndicator(true) -> adds .speaking to #ai-speaking-indicator
+     - toggleMicrophone()           -> mutes/unmutes (not start/stop)
+============================================================== */
+
+/* --- 21. VOICE DESIGN TOKENS -------------------------------- */
+:root {
+  /* Mic button — full duplex (mute-toggle semantics) */
+  --color-mic-live:         #16A34A;           /* green-600: mic is live */
+  --color-mic-live-border:  rgba(22,163,74,0.40);
+  --color-mic-live-ring:    rgba(22,163,74,0.20);
+  --color-mic-muted:        #DC2626;           /* red: mic is muted */
+  --color-mic-muted-border: rgba(220,38,38,0.35);
+  --color-mic-denied-bg:    #F1F5F9;           /* grey: denied */
+
+  /* Speaker button */
+  --speaker-btn-size:       52px;
+
+  /* Mic button (now same size as speaker) */
+  --mic-btn-size:           52px;
+
+  /* Visualizers */
+  --color-viz-user:         #2563EB;           /* blue: user mic waveform */
+  --color-viz-ai:           #22C55E;           /* green: AI voice bars */
+  --viz-bar-width:          4px;
+  --viz-bar-gap:            4px;
+  --viz-bar-max-h:          28px;
+  --viz-bar-min-h:          4px;
+
+  /* Call status row */
+  --color-call-dot:         #EF4444;           /* live red dot */
+  --color-call-dot-ring:    rgba(239,68,68,0.25);
+
+  /* Voice mode badge in header */
+  --color-voice-badge-bg:    rgba(37,99,235,0.15);
+  --color-voice-badge-border:rgba(37,99,235,0.30);
+
+  /* Mode selector */
+  --color-mode-active-bg:     rgba(37,99,235,0.08);
+  --color-mode-active-border: #2563EB;
+  --color-mode-default-border:#E2E8F0;
+}
+
+/* --- 22. INTERVIEW MODE SELECTOR (setup screen) ------------- */
+.mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-3);
+  border: 1.5px solid var(--color-mode-default-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  user-select: none;
+  min-height: 72px;
+  min-width: 44px;
+}
+
+.mode-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-mode-active-bg);
+}
+
+.mode-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.mode-btn--active,
+.mode-btn[aria-checked="true"] {
+  border-color: var(--color-mode-active-border);
+  background: var(--color-mode-active-bg);
+  color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+  font-weight: 600;
+}
+
+.mode-btn-icon  { font-size: 22px; line-height: 1; display: block; }
+.mode-btn-label { font-size: var(--font-size-xs); font-weight: inherit; text-align: center; line-height: 1.3; }
+
+/* Voice mode tip */
+.voice-mode-tip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  background: var(--color-mode-active-bg);
+  border: 1px solid var(--color-voice-badge-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  line-height: 1.4;
+  animation: messageSlideIn 200ms ease forwards;
+}
+
+.voice-mode-tip[hidden] { display: none; }
+
+/* --- 23. VOICE MODE BADGE (chat header) --------------------- */
+.voice-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: var(--space-3);
+  padding: 3px var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: default;           /* informational in v2, not a switch */
+  white-space: nowrap;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(248,250,252,0.70);
+}
+
+.voice-mode-badge:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.voice-mode-badge[data-mode="voice"] {
+  background: var(--color-voice-badge-bg);
+  border-color: var(--color-voice-badge-border);
+  color: #93C5FD;
+}
+
+.voice-mode-badge-icon  { font-size: 12px; line-height: 1; }
+
+/* --- 24. VOICE CALL BAR (full-duplex container) ------------- */
+/*
+  Shown when voice session is active (#voice-input-bar:not([hidden])).
+  Column layout:
+    1. .voice-call-status    — top row (live dot + timer + End Call)
+    2. .voice-visualizer-row — dual visualizers side-by-side
+    3. .voice-control-row    — mic mute + AI mute buttons
+    4. .voice-error-banner   — only when mic denied/lost
+*/
+.voice-input-bar {
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-6) var(--space-4);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.voice-input-bar:not([hidden]) { display: flex; }
+
+/* --- 25. CALL STATUS ROW ------------------------------------ */
+.voice-call-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 32px;
+}
+
+.call-status-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+}
+
+/* Pulsing red dot — "In Call" live indicator */
+.call-live-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-call-dot);
+  box-shadow: 0 0 0 3px var(--color-call-dot-ring);
+  animation: callDotPulse 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.call-live-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.call-divider {
+  color: var(--color-text-light);
+  font-size: var(--font-size-sm);
+}
+
+/* Elapsed timer */
+.call-timer {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+}
+
+/* End Call button — compact, right-aligned */
+.btn-end-call {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* --- 25b. RECORDING INDICATOR (repurposed as mic status) ---- */
+/*
+  In v2 this element is always visible in the call status row.
+  setRecordingIndicator(true)  -> default appearance (mic live)
+  setRecordingIndicator(false) -> .muted class added by JS (mic muted)
+
+  JS compat: app.js calls recordingIndicator.style.display.
+  The --inline variant overrides that with display:flex via !important
+  so it stays visible. JS's display change is handled gracefully.
+*/
+.recording-indicator--inline {
+  display: flex !important;  /* always visible in call status row */
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-mic-live);
+  letter-spacing: 0.04em;
+}
+
+/* The dot pulses green when mic is live */
+.recording-indicator--inline .rec-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-mic-live);
+  animation: micLivePulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.recording-indicator--inline .rec-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-mic-live);
+}
+
+/* Muted state — JS adds .muted class to #recording-indicator */
+.recording-indicator--inline.muted .rec-dot {
+  background: var(--color-text-light);
+  animation: none;
+}
+.recording-indicator--inline.muted .rec-label {
+  color: var(--color-text-muted);
+}
+.recording-indicator--inline.muted {
+  color: var(--color-text-muted);
+}
+
+/* --- 26. DUAL VISUALIZER ROW -------------------------------- */
+.voice-visualizer-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+}
+
+.viz-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  min-height: 60px;
+}
+
+.viz-panel-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* User mic: blue canvas */
+.viz-panel--user { border-color: rgba(37,99,235,0.20); }
+.viz-panel--ai   { border-color: rgba(34,197,94,0.25); }
+
+/* Canvas drawn by app.js _startVisualizer() — blue waveform */
+.audio-visualizer-canvas {
+  display: block;
+  width: 100%;
+  height: 40px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- 27. AI SPEAKING INDICATOR (CSS bars) ------------------- */
+/*
+  Always visible inside .viz-panel--ai.
+  Default (idle): bars flatline at low height, slow animation.
+  .speaking class (JS toggle): bars animate at full height, faster.
+  NO hidden attribute toggle — always shown during voice session.
+*/
+.ai-speaking-indicator {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--viz-bar-gap);
+  height: var(--viz-bar-max-h);
+  padding: 2px 0;
+}
+
+.ai-bar {
+  display: inline-block;
+  width: var(--viz-bar-width);
+  border-radius: 2px;
+  background: var(--color-viz-ai);
+  transform-origin: bottom center;
+  animation: vizIdle 2.4s ease-in-out infinite;
+}
+
+/* Idle heights (flatline look) */
+.ai-bar:nth-child(1) { height: 5px;  animation-delay: 0ms;   }
+.ai-bar:nth-child(2) { height: 7px;  animation-delay: 300ms; }
+.ai-bar:nth-child(3) { height: 6px;  animation-delay: 150ms; }
+.ai-bar:nth-child(4) { height: 7px;  animation-delay: 450ms; }
+.ai-bar:nth-child(5) { height: 5px;  animation-delay: 220ms; }
+
+/* Speaking: full bounce animation */
+.ai-speaking-indicator.speaking .ai-bar {
+  animation: vizBounce 0.9s ease-in-out infinite;
+}
+.ai-speaking-indicator.speaking .ai-bar:nth-child(1) { height: 14px; animation-delay: 0ms;   }
+.ai-speaking-indicator.speaking .ai-bar:nth-child(2) { height: 22px; animation-delay: 120ms; }
+.ai-speaking-indicator.speaking .ai-bar:nth-child(3) { height: 28px; animation-delay: 60ms;  }
+.ai-speaking-indicator.speaking .ai-bar:nth-child(4) { height: 18px; animation-delay: 180ms; }
+.ai-speaking-indicator.speaking .ai-bar:nth-child(5) { height: 12px; animation-delay: 30ms;  }
+
+/* --- 28. VOICE CONTROL ROW ---------------------------------- */
+.voice-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+}
+
+.voice-control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.voice-control-label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* --- 29. MIC BUTTON (full-duplex: mute toggle) -------------- */
+/*
+  Default (live): green border, mic icon. Mic pipeline is ON.
+  .muted: red background — mic is silenced (isRecording = false).
+  .denied: grey, disabled — mic permission refused.
+  No "recording" state class — no push-to-talk in full duplex.
+*/
+.mic-btn {
+  position: relative;
+  width: var(--mic-btn-size);
+  height: var(--mic-btn-size);
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 2px solid var(--color-mic-live-border);
+  color: var(--color-mic-live);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px var(--color-mic-live-ring), var(--shadow-sm);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.mic-btn:hover:not(:disabled):not(.denied) {
+  background: rgba(22,163,74,0.06);
+  border-color: var(--color-mic-live);
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 5px var(--color-mic-live-ring), var(--shadow-md);
+}
+
+.mic-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 0 0 3px var(--color-mic-live-ring), var(--shadow-sm);
+}
+
+.mic-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* Muted state — JS adds .muted + sets aria-pressed="true" */
+.mic-btn.muted,
+.mic-btn[aria-pressed="true"] {
+  background: var(--color-mic-muted);
+  border-color: var(--color-mic-muted-border);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+  animation: none;
+}
+
+.mic-btn.muted:hover,
+.mic-btn[aria-pressed="true"]:hover {
+  background: var(--color-danger-hover);
+  box-shadow: var(--shadow-md);
+}
+
+/* Denied state */
+.mic-btn.denied,
+.mic-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  box-shadow: none;
+  transform: none;
+  background: var(--color-mic-denied-bg);
+}
+
+.mic-btn-icon { font-size: 20px; line-height: 1; display: block; }
+
+/* --- 30. SPEAKER BUTTON (unchanged logic from v1) ----------- */
+.speaker-btn {
+  width: var(--speaker-btn-size);
+  height: var(--speaker-btn-size);
+  border-radius: 50%;
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+  font-size: 18px;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.speaker-btn:hover  { background: var(--color-border); transform: translateY(-1px); }
+.speaker-btn:active { transform: translateY(0); }
+
+.speaker-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.speaker-btn.muted,
+.speaker-btn[aria-pressed="true"] {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: var(--color-danger);
+}
+
+.speaker-btn-icon { font-size: 18px; line-height: 1; display: block; pointer-events: none; }
+
+/* --- 31. VOICE ERROR BANNER --------------------------------- */
+.voice-error-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: #991B1B;
+  line-height: 1.4;
+  animation: messageSlideIn 150ms ease forwards;
+}
+
+.voice-error-banner[hidden] { display: none; }
+.voice-error-icon { font-size: 14px; flex-shrink: 0; }
+.voice-error-text { flex: 1; }
+
+/* --- 32. VOICE ANIMATIONS ----------------------------------- */
+@keyframes callDotPulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--color-call-dot-ring); }
+  50%       { box-shadow: 0 0 0 6px rgba(239,68,68,0.08); }
+}
+
+@keyframes micLivePulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.5; transform: scale(0.80); }
+}
+
+@keyframes vizIdle {
+  0%, 100% { transform: scaleY(0.5); opacity: 0.4; }
+  50%       { transform: scaleY(0.8); opacity: 0.6; }
+}
+
+@keyframes vizBounce {
+  0%, 100% { transform: scaleY(0.35); opacity: 0.65; }
+  50%       { transform: scaleY(1);    opacity: 1;    }
+}
+
+/* --- 33. VOICE RESPONSIVE — TABLET (<=768px) ---------------- */
+@media (max-width: 768px) {
+  .voice-input-bar { padding: var(--space-2) var(--space-4) var(--space-3); }
+  .mode-selector   { gap: var(--space-2); }
+
+  .mode-btn {
+    padding: var(--space-3) var(--space-2);
+    min-height: 64px;
+  }
+
+  .voice-mode-badge-label { display: none; }
+  .voice-mode-badge       { padding: 3px var(--space-2); }
+
+  .voice-visualizer-row { gap: var(--space-2); }
+}
+
+/* --- 34. VOICE RESPONSIVE — MOBILE (<=480px) ---------------- */
+@media (max-width: 480px) {
+  :root {
+    --mic-btn-size:     48px;
+    --speaker-btn-size: 48px;
+  }
+
+  .mode-btn { min-height: 60px; padding: var(--space-3) var(--space-2); }
+  .voice-control-row { gap: var(--space-6); }
+  .call-live-label   { display: none; }  /* save space; dot+timer is enough */
+}
+
+/* --- 35. VOICE DESKTOP (>=1024px) --------------------------- */
+@media (min-width: 1024px) {
+  .voice-input-bar {
+    max-width: 100%;
+    padding-left:  calc(50% - var(--chat-max-width) / 2 + var(--space-6));
+    padding-right: calc(50% - var(--chat-max-width) / 2 + var(--space-6));
+  }
+}
+
+/* --- 36. VOICE CONTROLS CONTAINER (#voice-controls) --------- */
+/*
+  Revealed by JS on session_ready:
+    document.getElementById('voice-controls').style.display = 'flex'
+  Starts hidden via HTML inline style="display:none".
+  Contains the dual visualizer row and the mic/speaker control row.
+  Column layout matches .voice-input-bar's flex column context.
+*/
+.voice-controls {
+  display: flex;               /* overridden by inline style until session_ready */
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* --- 37. SPEAKING-ACTIVE STATE (generic pulsing indicator) --- */
+/*
+  .speaking-active is a generic active-speaking class that JS can
+  add to either #user-speaking-indicator or #ai-speaking-indicator
+  (or both simultaneously -- this is full-duplex, they overlap freely).
+
+  For #user-speaking-indicator (.viz-panel--user):
+    Adds a glowing blue border pulse to the panel.
+  For #ai-speaking-indicator (.ai-speaking-indicator):
+    Triggers the same vizBounce bar animation used by .speaking,
+    allowing JS to use either .speaking or .speaking-active for AI bars.
+
+  Intentionally uses box-shadow rather than border-width to avoid
+  layout shifts.
+*/
+
+/* User mic panel -- glow pulse when mic is detecting speech */
+#user-speaking-indicator.speaking-active {
+  border-color: rgba(37, 99, 235, 0.55);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  animation: speakingActivePulse 1.4s ease-in-out infinite;
+}
+
+/* AI speaking indicator bars -- same full-bounce as .speaking */
+#ai-speaking-indicator.speaking-active .ai-bar {
+  animation: vizBounce 0.9s ease-in-out infinite;
+}
+#ai-speaking-indicator.speaking-active .ai-bar:nth-child(1) { height: 14px; animation-delay: 0ms;   }
+#ai-speaking-indicator.speaking-active .ai-bar:nth-child(2) { height: 22px; animation-delay: 120ms; }
+#ai-speaking-indicator.speaking-active .ai-bar:nth-child(3) { height: 28px; animation-delay: 60ms;  }
+#ai-speaking-indicator.speaking-active .ai-bar:nth-child(4) { height: 18px; animation-delay: 180ms; }
+#ai-speaking-indicator.speaking-active .ai-bar:nth-child(5) { height: 12px; animation-delay: 30ms;  }
+
+/* Generic: any element with .speaking-active gets a soft pulsing glow
+   (fallback for any future indicator elements) */
+.speaking-active {
+  animation: speakingActivePulse 1.4s ease-in-out infinite;
+}
+
+@keyframes speakingActivePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    border-color: rgba(37, 99, 235, 0.40);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.08);
+    border-color: rgba(37, 99, 235, 0.70);
+  }
+}
+
+/* AI speaking-active: green glow variant for the AI panel wrapper */
+.viz-panel--ai:has(#ai-speaking-indicator.speaking-active) {
+  border-color: rgba(34, 197, 94, 0.55);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+  animation: speakingActivePulseGreen 1.4s ease-in-out infinite;
+}
+
+@keyframes speakingActivePulseGreen {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.40);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.06);
+    border-color: rgba(34, 197, 94, 0.65);
+  }
+}
